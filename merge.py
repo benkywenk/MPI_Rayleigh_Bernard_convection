@@ -1,4 +1,4 @@
-#Merge distributed analysis sets from a FileHandler.
+#Merge distributed analysis sets
 import pathlib
 from dedalus.tools import post
 
