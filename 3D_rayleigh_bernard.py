@@ -5,14 +5,6 @@ This script uses a Fourier basis in both the x and y directions with periodic bo
 conditions and a Chebyshev basis in the z direction with fixed flux boundary conditions.
 
 Equations are non-dimensionalised by the viscous timescale (t in units of viscous time).
-
-Can be run using mpi (on for example, 4 processors) by typing
-
-    mpiexec -n 4 python3 rayleigh_benard.py
-
-instead of simply
-
-    python3 rayleigh_benard.py
 """
 
 import numpy as np
@@ -94,6 +86,7 @@ problem.add_bc("left(Tz) = -1")           # Fixed flux at bottom boundary, F = 
 solver = problem.build_solver(de.timesteppers.RK443)
 logger.info('Solver built')
 
+# Restart or Initial perturbation
 if not pathlib.Path('restart.h5').exists():
     # Initial conditions
     z = domain.grid(1)
