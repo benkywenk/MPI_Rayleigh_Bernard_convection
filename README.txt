@@ -40,10 +40,14 @@ simulation using mpi (on for example, 4 processors) can be done by typing:
 This command can be changed to select a higher or lower number of cores. Carpathia has 64 cores and realistically, 
 for a 2.5D simulation 4 or 8 cores can be used. Don't set this much hugher in a 2.5D simulation as it is unnecessary.
 For 3D simulations, 16 cores can be used however be warned that the time it takes to calculate timesteps increases alot
-faster in 3D. on 16 cores, I would advise a resolution of either 64x64x32 or 64x64x64, which take approx 2.5-3 hrs and 5-8 hrs.
+faster in 3D. on 16 cores, I would advise a resolution of either 64x64x32 or 64x64x64, which take approx 2.5-3 hrs and 10-12 hrs.
 Once we have a working angular momentum spectral decomposition analysis tool then we can start to ramp up the resolution
 and take a bit more time to make a bigger dataset (However realistically we need to just work on one dataset between us,
 or mayve we would each make different simulations with a few different parameters to investigate how these things change the simulation).
+
+BEFORE RUNNING:
+make sure you have created a file structure that corresponds to how the data will be saved. In my case I created a folder called sim_data
+and made my save_direc variable be equal to that. 
 
 Once a simulation has been completed, the following command can be done:
 
