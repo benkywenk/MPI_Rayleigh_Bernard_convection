@@ -147,9 +147,9 @@ analysis.add_task("integ( integ( (-1)*Tz, 'x')/Lx , 'y')/Ly", layout='g', name='
 analysis.add_task("integ( integ( integ(0.5*(u**2 + v**2 + w**2) , 'x')/Lx , 'y')/Ly , 'z')/Lz", layout='g', name='KE')
 
 # Angular Momentum
-#analysis.add_task("w*y - v*z", layout='c', name='Lx') # x component
-#analysis.add_task("u*z - w*x", layout='c', name='Ly') # y component
-#analysis.add_task("v*x - u*y", layout='c', name='Lz') # z component
+analysis.add_task("w*y - v*z", layout='g', name='Lx') # x component
+analysis.add_task("u*z - w*x", layout='g', name='Ly') # y component
+analysis.add_task("v*x - u*y", layout='g', name='Lz') # z component
 
 # Creating a parameter file
 run_parameters = solver.evaluator.add_file_handler(save_direc + 'run_parameters', wall_dt=1e20, max_writes=1,mode=fh_mode)
