@@ -60,11 +60,11 @@ problem.add_equation("dz(T) - Tz = 0")
 # mass continuity
 problem.add_equation("dx(u) + wz = 0")
 # x-component of the momentum equation
-problem.add_equation("dt(u) + dx(p) - (dx(dx(u)) + dz(uz)) - 2 * v * (1 / Ek) * sin(phi) = - (u * dx(u) + w * uz)")
+problem.add_equation("dt(u) + dx(p) - (dx(dx(u)) + dz(uz)) + 2 * w * (1 / Ek) = - (u * dx(u) + w * uz)")
 # y-component of the momentum equation
-problem.add_equation("dt(v) - (dx(dx(v)) + dz(vz)) + 2 * (u * (1 / Ek) * sin(phi) - w * (1 / Ek) * cos(phi)) = - (u * dx(v) + w * vz)")
+problem.add_equation("dt(v) - (dx(dx(v)) + dz(vz)) = - (u * dx(v) + w * vz)")
 # z-component of the momentum equation
-problem.add_equation("dt(w) + dz(p) - (dx(dx(w)) + dz(wz)) + 2 * v * (1 / Ek) * cos(phi) - X * T = -(u * dx(w) + w * wz)")
+problem.add_equation("dt(w) + dz(p) - (dx(dx(w)) + dz(wz)) - 2 * u * (1 / Ek) - X * T = -(u * dx(w) + w * wz)")
 # Temperature equation
 problem.add_equation("Pr * dt(T) - (dx(dx(T)) + dz(Tz)) = - Pr * (u * dx(T) + w * Tz)")
 
