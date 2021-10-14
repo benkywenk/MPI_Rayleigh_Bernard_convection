@@ -54,7 +54,3 @@ Once a simulation has been completed, the following command can be done:
     python3 merge.py
 
 This doesn't need to be done using mpiexec because then each core would produce an indentical file, so it is not needed.
-
-There are no programs in order to plot, this is where abouts I am in getting it all working well on Carpathia. It would work in
-the same way as we have done last term tho, so making your own file on Carpathia is definately doable. It can all be done through
-ssh on vscode. I will explain how to set that up as well cus it is really useful.
