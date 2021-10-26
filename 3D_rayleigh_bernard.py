@@ -40,7 +40,7 @@ z_basis = de.Chebyshev('z',Nz,interval=(0,Lz),dealias=3/2) # Chebyshev basis in 
 domain = de.Domain([x_basis, y_basis, z_basis], grid_dtype=np.float64)  # Defining domain
 z = domain.grid(1, scales=1)                                   # accessing the z values
 
-# 3D Boussinesq hydrodynamics
+# 2.5D Boussinesq hydrodynamics
 problem = de.IVP(domain,variables=['T','p','u','v','w','Tz','uz','vz','wz'])
 
 # Defining model parameters
@@ -63,11 +63,11 @@ problem.add_equation("dz(T) - Tz = 0")
 # mass continuity
 problem.add_equation("dx(u) + dy(v) + wz = 0")
 # x-component of the momentum equation
-problem.add_equation("dt(u) + dx(p) - (dx(dx(u)) + dy(dy(u)) + dz(uz)) - 2 * w * (1 / Ek) = - (u * dx(u) + v * dy(u) + w * uz)")
+problem.add_equation("dt(u) + dx(p) - (dx(dx(u)) + dy(dy(u)) + dz(uz)) - 2 * (1 / Ek) * v * sin(phi) = - (u * dx(u) + v * dy(u) + w * uz)")
 # y-component of the momentum equation
-problem.add_equation("dt(v) + dy(p) - (dx(dx(v)) + dy(dy(v)) + dz(vz)) = - (u * dx(v) + v * dy(v) + w * vz)")
+problem.add_equation("dt(v) + dy(p) - (dx(dx(v)) + dy(dy(v)) + dz(vz)) + 2 * (1 / Ek) * (u * sin(phi) - w * cos(phi)) = - (u * dx(v) + v * dy(v) + w * vz)")
 # z-component of the momentum equation
-problem.add_equation("dt(w) + dz(p) - (dx(dx(w)) + dy(dy(w)) + dz(wz)) - 2 * u * (1 / Ek) - X * T = -(u * dx(w) + v * dy(w) + w * wz)")
+problem.add_equation("dt(w) + dz(p) - (dx(dx(w)) + dy(dy(w)) + dz(wz)) - 2 * (1 / Ek) * v * cos(phi) - X * T = -(u * dx(w) + v * dy(w) + w * wz)")
 # Temperature equation
 problem.add_equation("Pr * dt(T) - (dx(dx(T)) + dy(dy(T)) + dz(Tz)) = - Pr * (u * dx(T) + v * dy(T) + w * Tz)")
 
@@ -86,7 +86,6 @@ problem.add_bc("left(Tz) = -1")           # Fixed flux at bottom boundary, F = 
 solver = problem.build_solver(de.timesteppers.RK443)
 logger.info('Solver built')
 
-# Restart or Initial perturbation
 if not pathlib.Path('restart.h5').exists():
     # Initial conditions
     z = domain.grid(1)
@@ -102,7 +101,7 @@ if not pathlib.Path('restart.h5').exists():
     # Linear background + perturbations damped at walls
     zb, zt = z_basis.interval
     pert =  1e-5 * noise * (zt - z) * (z - zb)
-    T['g'] = pert
+    T['g'] = 1-pert
     T.differentiate('z', out=Tz)
 
     # Initial timestep
@@ -146,9 +145,9 @@ analysis.add_task("integ( integ( (-1)*Tz, 'x')/Lx , 'y')/Ly", layout='g', name='
 # Mean KE
 analysis.add_task("integ( integ( integ(0.5*(u**2 + v**2 + w**2) , 'x')/Lx , 'y')/Ly , 'z')/Lz", layout='g', name='KE')
 
-# Angular Momentum
-analysis.add_task("u * (u * z - w * x)", layout='g', name='long_flux') # Longitudinal flux
-analysis.add_task("w * (u * z - w * x)", layout='g', name='radial_flux') # Radial flux
+# Angular Momentum Flux
+analysis.add_task("z*u**2 - x*w*u", layout='g', name='long_flux') # Longitudinal angular momentum flux
+analysis.add_task("z*u*w - x*w**2", layout='g', name='rad_flux') # Radial angular momentum flux
 
 # Creating a parameter file
 run_parameters = solver.evaluator.add_file_handler(save_direc + 'run_parameters', wall_dt=1e20, max_writes=1,mode=fh_mode)
