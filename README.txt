@@ -54,3 +54,6 @@ Once a simulation has been completed, the following command can be done:
     python3 merge.py
 
 This doesn't need to be done using mpiexec because then each core would produce an indentical file, so it is not needed.
+
+The plotting routines can be found in the 3D_plot.py and plot.py depending on whether the simulation is 3D or 2.5D. To run specific plots, 
+change the plot routine to True at the top of the corresponding file.
