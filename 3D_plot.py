@@ -11,8 +11,8 @@ import os
 
 import run_param_file as rpf
 
-direc = "sim_data/3D"
-save_direc = "figures/3D"
+direc = "sim_data/3D/"
+save_direc = "figures/3D/"
 run_name = rpf.run_name
 
 plot_fluxes = False
@@ -55,12 +55,6 @@ with h5py.File(direc + "analysis/analysis_"+ run_name +".h5", mode = 'r') as fil
     KE = np.array(file['tasks']['KE'])[:,0,0,0]
     t = np.array(file['scales']['sim_time'])
 
-    ubar = np.array(file['tasks']['ubar_x'])
-    vbar = np.array(file['tasks']['vbar_x'])
-    wbar = np.array(file['tasks']['wbar_x'])
-
-    print(np.shape(ubar[:,0,:]))
-    print(np.shape(t))
 
 with h5py.File(direc + "snapshots/snapshots_"+ run_name +".h5", mode = 'r') as file:
     T = np.array(file['tasks']['T'])
