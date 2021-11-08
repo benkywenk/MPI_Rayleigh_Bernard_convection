@@ -28,6 +28,7 @@ with h5py.File(direc + "run_parameters/run_parameters_"+ run_name +".h5", mode =
     Pr = file['tasks']['Pr'][0][0][0]
     Ra = file['tasks']['Ra'][0][0][0]
     Ek = file['tasks']['Ek'][0][0][0]
+    phi = file['tasks']['phi'][0][0][0]
     Lx = int(file['tasks']['Lx'][0][0][0])
     Ly = int(file['tasks']['Ly'][0][0][0])
     Lz = int(file['tasks']['Lz'][0][0][0])
