@@ -11,17 +11,29 @@ logger.info('Merging data files')
 save_direc = "sim_data/"
 run_name = rpf.run_name
 
-#Merging snapshot files
-post.merge_process_files(save_direc + "snapshots", cleanup=True)
-set_paths = list(pathlib.Path(save_direc + "snapshots/").glob("snapshots_s*.h5"))
-post.merge_sets(save_direc + "snapshots/snapshots_" + run_name + ".h5", set_paths, cleanup=True)
+#Merge function
+def merge(dimensionality):
+    #Merging snapshot files
+    post.merge_process_files(save_direc + dimensionality + "snapshots", cleanup=True)
+    set_paths = list(pathlib.Path(save_direc + dimensionality + "snapshots/").glob("snapshots_s*.h5"))
+    post.merge_sets(save_direc + dimensionality + "snapshots/snapshots_" + run_name + ".h5", set_paths, cleanup=True)
 
-#Merging analysis files
-post.merge_process_files(save_direc + "analysis", cleanup=True)
-set_paths = list(pathlib.Path(save_direc + "analysis/").glob("analysis_s*.h5"))
-post.merge_sets(save_direc + "analysis/analysis_" + run_name + ".h5", set_paths, cleanup=True)
+    #Merging analysis files
+    post.merge_process_files(save_direc + dimensionality + "analysis", cleanup=True)
+    set_paths = list(pathlib.Path(save_direc + dimensionality + "analysis/").glob("analysis_s*.h5"))
+    post.merge_sets(save_direc + dimensionality + "analysis/analysis_" + run_name + ".h5", set_paths, cleanup=True)
 
-#Merging run_parameter files
-post.merge_process_files(save_direc + "run_parameters", cleanup=True)
-set_paths = list(pathlib.Path(save_direc + "run_parameters/").glob("run_parameters_s*.h5"))
-post.merge_sets(save_direc + "run_parameters/run_parameters_" + run_name + ".h5", set_paths, cleanup=True)
+    #Merging run_parameter files
+    post.merge_process_files(save_direc + dimensionality + "run_parameters", cleanup=True)
+    set_paths = list(pathlib.Path(save_direc + dimensionality + "run_parameters/").glob("run_parameters_s*.h5"))
+    post.merge_sets(save_direc + dimensionality + "run_parameters/run_parameters_" + run_name + ".h5", set_paths, cleanup=True)
+
+#specifying simulation type
+choice = input("Enter 3 for full 3D simulation 2 for 2.5D: ")
+
+if choice == "3":
+    merge("3D/")
+elif choice == "2":
+    merge("2.5D/")
+else:
+    print("Incorrect option, exiting program.")
