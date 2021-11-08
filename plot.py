@@ -11,8 +11,8 @@ import os
 
 import run_param_file as rpf
 
-direc = "sim_data/2.5D/"
-save_direc = "figures/2.5D/"
+direc = "sim_data/2.5D"
+save_direc = "figures/2.5D"
 run_name = rpf.run_name
 
 plot_fluxes = False
@@ -54,13 +54,9 @@ with h5py.File(direc + "analysis/analysis_"+ run_name +".h5", mode = 'r') as fil
     vbar = np.array(file['tasks']['vbar_x'])
     wbar = np.array(file['tasks']['wbar_x'])
 
-    print(np.shape(ubar[:,0,:]))
-    print(np.shape(t))
-
 # Importing system snapshots
 with h5py.File(direc + "snapshots/snapshots_"+ run_name +".h5", mode = 'r') as file:
-    T = np.array(file['tasks']['T'])
-    w = np.array(file['tasks']['w'])
+    #Empty
 
 # Plot routine for energy flux
 if plot_fluxes:
@@ -71,7 +67,7 @@ if plot_fluxes:
     plt.ylabel("z")
     plt.title("Ra = {}, Pr = {}, Ek = {}, phi = {}".format(Ra, Pr, Ek, phi))
     plt.legend()
-    plt.savefig(save_direc + "2D_intE_fluxes_"+ run_name)
+    plt.savefig(save_direc + "intE_fluxes_"+ run_name)
     plt.clf()
     plt.close()
 
@@ -82,7 +78,7 @@ if plot_KE:
     plt.xlabel("t")
     plt.ylabel("Kinetic Energy")
     plt.title("Ra = {}, Pr = {}, Ek = {}, phi = {}".format(Ra, Pr, Ek, phi))
-    plt.savefig(save_direc + "2D_KE_"+ run_name)
+    plt.savefig(save_direc + "KE_"+ run_name)
     plt.clf
     plt.close
 
@@ -97,6 +93,6 @@ if mean_flow:
     ax[1].set_title('Horizontally averaged v')
     ax[1].set_ylabel('z')
     ax[1].set_xlabel('t')
-    plt.savefig(save_direc+"2D_mean_flow_"+run_name)
+    plt.savefig(save_direc+"mean_flow_"+run_name)
     plt.clf()
     plt.close()
