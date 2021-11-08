@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 import run_param_file as rpf   # Imports a parameter file "run_param_file.py"
 
-save_direc = "sim_data/"
+save_direc = "sim_data/2.5D"
 pathlib.Path(save_direc).mkdir(parents=True, exist_ok=True)
 
 
@@ -60,11 +60,11 @@ problem.add_equation("dz(T) - Tz = 0")
 # mass continuity
 problem.add_equation("dx(u) + wz = 0")
 # x-component of the momentum equation
-problem.add_equation("dt(u) + dx(p) - (dx(dx(u)) + dz(uz)) - 2 * v * (1 / Ek) * sin(phi) = - (u * dx(u) + w * uz)")
+problem.add_equation("dt(u) + dx(p) - (dx(dx(u)) + dz(uz)) - 2 * (1 / Ek) * v * sin(phi) = - (u * dx(u) + w * uz)")
 # y-component of the momentum equation
-problem.add_equation("dt(v) - (dx(dx(v)) + dz(vz)) + 2 * (u * (1 / Ek) * sin(phi) - w * (1 / Ek) * cos(phi)) = - (u * dx(v) + w * vz)")
+problem.add_equation("dt(v) - (dx(dx(v)) + dz(vz)) + 2 * (1 / Ek) * (u * sin(phi) - w * cos(phi)) = - (u * dx(v) + w * vz)")
 # z-component of the momentum equation
-problem.add_equation("dt(w) + dz(p) - (dx(dx(w)) + dz(wz)) + 2 * v * (1 / Ek) * cos(phi) - X * T = -(u * dx(w) + w * wz)")
+problem.add_equation("dt(w) + dz(p) - (dx(dx(w)) + dz(wz)) + 2 * (1 / Ek) * v * cos(phi) - X * T = -(u * dx(w) + w * wz)")
 # Temperature equation
 problem.add_equation("Pr * dt(T) - (dx(dx(T)) + dz(Tz)) = - Pr * (u * dx(T) + w * Tz)")
 
@@ -97,7 +97,7 @@ noise = rand.standard_normal(gshape)[slices]
 # Linear background + perturbations damped at walls
 zb, zt = z_basis.interval
 pert =  1e-5 * noise * (zt - z) * (z - zb)
-T['g'] = pert
+T['g'] = 1-pert
 T.differentiate('z', out=Tz)
 
 # Initial timestep
@@ -114,7 +114,7 @@ CFL.add_velocities(('u', 'w'))
 
 # Flow properties
 flow = flow_tools.GlobalFlowProperty(solver, cadence=10)
-flow.add_property("sqrt(u**2 + v**2 + w**2)/Ra", name='Re')
+flow.add_property("sqrt(u**2 + v**2 + w**2)/Ra", name = 'Re')
 
 # Saving snapshots
 snapshots = solver.evaluator.add_file_handler(save_direc + 'snapshots', sim_dt=rpf.snapshot_freq, max_writes=100)
@@ -122,18 +122,23 @@ snapshots.add_system(solver.state)
 
 # Analysis tasks
 analysis = solver.evaluator.add_file_handler(save_direc + 'analysis', sim_dt=rpf.analysis_freq, max_writes=5000)
-analysis.add_task("integ(T,'x')/Lx", layout='g', name='<T>_x')
-analysis.add_task("integ(Tz,'x')/Lx", layout='g', name='<Tz>_x')
+analysis.add_task("integ(T,'x')/Lx", layout = 'g', name = 'Tbar_x')
+analysis.add_task("integ(Tz,'x')/Lx", layout = 'g', name = 'Tzbar_x')
 
 # Mean Re
-analysis.add_task("integ( integ( sqrt(u**2 + v**2 + w**2) , 'x')/Lx, 'z')/Lz", layout='g', name='Re')
+analysis.add_task("integ( integ( sqrt(u**2 + v**2 + w**2) , 'x')/Lx, 'z')/Lz", layout = 'g', name = 'Re')
 
 # Flux decomposition - Internal energy equation
-analysis.add_task("integ(T*w,'x')*Pr/Lx", layout='g', name='L_conv')
-analysis.add_task("integ((-1)*Tz, 'x')/Lx", layout='g', name='L_cond')
+analysis.add_task("integ(T*w,'x')*Pr/Lx", layout = 'g', name = 'L_conv')
+analysis.add_task("integ((-1)*Tz, 'x')/Lx", layout = 'g', name = 'L_cond')
 
 # Mean KE
-analysis.add_task(" integ( (integ(0.5*(u**2 + v**2 + w**2),'x')/Lx), 'z')/Lz", layout='g', name='KE')
+analysis.add_task(" integ( (integ(0.5*(u**2 + v**2 + w**2),'x')/Lx), 'z')/Lz", layout = 'g', name = 'KE')
+
+# Mean flows
+analysis.add_task("integ(u, 'x')/Lx", layout = 'g', name = 'ubar_x')
+analysis.add_task("integ(v, 'x')/Lx", layout = 'g', name = 'vbar_x')
+analysis.add_task("integ(w, 'x')/Lx", layout = 'g', name = 'wbar_x')
 
 # Creating a parameter file
 run_parameters = solver.evaluator.add_file_handler(save_direc + 'run_parameters', wall_dt=1e20, max_writes=1)
