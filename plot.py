@@ -11,8 +11,8 @@ import os
 
 import run_param_file as rpf
 
-direc = "sim_data/2halfD"
-save_direc = "figures/2halfD"
+direc = "sim_data/2halfD/"
+save_direc = "figures/2halfD/"
 run_name = rpf.run_name
 
 plot_fluxes = False
