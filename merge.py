@@ -34,6 +34,6 @@ choice = input("Enter 3 for full 3D simulation 2 for 2.5D: ")
 if choice == "3":
     merge("3D/")
 elif choice == "2":
-    merge("2.5D/")
+    merge("2halfD/")
 else:
     print("Incorrect option, exiting program.")
