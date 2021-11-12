@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 import run_param_file as rpf   # Imports a parameter file "run_param_file.py"
 
-save_direc = "sim_data/2.5D"
+save_direc = "sim_data/2halfD"
 pathlib.Path(save_direc).mkdir(parents=True, exist_ok=True)
 
 
