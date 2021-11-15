@@ -32,6 +32,7 @@ Pr = rpf.Pr
 Ra = rpf.Ra
 Ek = rpf.Ek
 phi = rpf.phi
+tau = rpf.tau
 
 # Create bases and domain
 x_basis = de.Fourier('x',Nx,interval=(-Lx/2.,Lx/2.),dealias=3/2)   # Fourier basis in x
@@ -40,8 +41,11 @@ z_basis = de.Chebyshev('z',Nz,interval=(0,Lz),dealias=3/2) # Chebyshev basis in 
 domain = de.Domain([x_basis, y_basis, z_basis], grid_dtype=np.float64)  # Defining domain
 z = domain.grid(1, scales=1)                                   # accessing the z values
 
-# 2.5D Boussinesq hydrodynamics
-problem = de.IVP(domain,variables=['T','p','u','v','w','Tz','uz','vz','wz'])
+# Extra fields for time averaging and mean flow
+average_fields = ['u_avgt', 'v_avgt', 'w_avgt', 'stress_uw', 'stress_vw']
+
+# 3D Boussinesq hydrodynamics
+problem = de.IVP(domain,variables=['T','p','u','v','w','Tz','uz','vz','wz', *average_fields])
 
 # Defining model parameters
 problem.parameters['Lx'] = Lx
@@ -51,6 +55,7 @@ problem.parameters['Ra'] = Ra
 problem.parameters['Pr'] = Pr
 problem.parameters['Ek'] = Ek
 problem.parameters['phi'] = phi
+problem.parameters['tau'] = tau 
 problem.parameters['X'] = Ra/Pr
 
 
@@ -70,6 +75,13 @@ problem.add_equation("dt(v) + dy(p) - (dx(dx(v)) + dy(dy(v)) + dz(vz)) + 2 * (1 
 problem.add_equation("dt(w) + dz(p) - (dx(dx(w)) + dy(dy(w)) + dz(wz)) - 2 * (1 / Ek) * v * cos(phi) - X * T = -(u * dx(w) + v * dy(w) + w * wz)")
 # Temperature equation
 problem.add_equation("Pr * dt(T) - (dx(dx(T)) + dy(dy(T)) + dz(Tz)) = - Pr * (u * dx(T) + v * dy(T) + w * Tz)")
+
+# Time averaging
+problem.add_equation("dt(u_avgt) = u / tau") # time averaged u
+problem.add_equation("dt(v_avgt) = v / tau") # time averaged v
+problem.add_equation("dt(w_avgt) = w / tau") # time averaged w
+problem.add_equation("dt(stress_uw) = ((u - u_avgt) * (w - w_avgt)) / tau") # time averaged reynolds stress
+problem.add_equation("dt(stress_vw) = ((v - v_avgt) * (w - w_avgt)) / tau") # time averaged reynolds stress
 
 problem.add_bc("left(u) = 0")           # no-slip boundary
 problem.add_bc("right(u) = 0")          # no-slip boundary
@@ -129,11 +141,11 @@ flow = flow_tools.GlobalFlowProperty(solver, cadence=10)
 flow.add_property("sqrt(u**2 + v**2 + w**2)/Ra", name='Re')
 
 # Saving snapshots
-snapshots = solver.evaluator.add_file_handler(save_direc + 'snapshots', sim_dt=rpf.snapshot_freq, max_writes=100, mode=fh_mode)
+snapshots = solver.evaluator.add_file_handler(save_direc + 'snapshots', sim_dt=rpf.snapshot_freq, mode=fh_mode)
 snapshots.add_system(solver.state)
 
 # Analysis tasks
-analysis = solver.evaluator.add_file_handler(save_direc + 'analysis', sim_dt=rpf.analysis_freq, max_writes=5000, mode=fh_mode)
+analysis = solver.evaluator.add_file_handler(save_direc + 'analysis', sim_dt=rpf.analysis_freq, mode=fh_mode)
 
 # Mean Re
 analysis.add_task("integ( integ( integ( sqrt(u**2 + v**2 + w**2) , 'x')/Lx , 'y')/Ly , 'z')/Lz", layout='g', name='Re')
@@ -145,9 +157,23 @@ analysis.add_task("integ( integ( (-1)*Tz, 'x')/Lx , 'y')/Ly", layout='g', name='
 # Mean KE
 analysis.add_task("integ( integ( integ(0.5*(u**2 + v**2 + w**2) , 'x')/Lx , 'y')/Ly , 'z')/Lz", layout='g', name='KE')
 
-# Angular Momentum Flux
-analysis.add_task("z*u**2 - x*w*u", layout='g', name='long_flux') # Longitudinal angular momentum flux
-analysis.add_task("z*u*w - x*w**2", layout='g', name='rad_flux') # Radial angular momentum flux
+# Averages & Reynolds Stresses
+# Must be called manually so that averages can be reset at each interval
+averages = solver.evaluator.add_file_handler(save_direc + 'averages', sim_dt = np.inf, mode='overwrite')
+
+# Warning: dirty hack
+# Make dedalus think this handler has been evaluated at time t=0
+# This stops the handlers being evaluated at the start:
+averages.last_wall_div = averages.last_sim_div = averages.last_iter_div = 0
+
+# Averages to save
+averages.add_task("integ(u_avgt, 'y') / Ly", layout = 'g', name = 'u_avgt')
+averages.add_task("integ(v_avgt, 'y') / Ly", layout = 'g', name = 'v_avgt')
+averages.add_task("integ(w_avgt, 'y') / Ly", layout = 'g', name = 'w_avgt')
+averages.add_task("integ(stress_uw, 'y') / Ly", layout='g', name='stress_uw')
+averages.add_task("integ(stress_vw, 'y') / Ly", layout='g', name='stress_vw')
+averages.add_task("dz(integ(stress_uw, 'y')) / Ly", layout='g', name='dz_stress_uw')
+averages.add_task("dz(integ(stress_vw, 'y')) / Ly", layout='g', name='dz_stress_vw')
 
 # Creating a parameter file
 run_parameters = solver.evaluator.add_file_handler(save_direc + 'run_parameters', wall_dt=1e20, max_writes=1,mode=fh_mode)
@@ -165,11 +191,23 @@ run_parameters.add_task(Nz, name="Nz")
 run_parameters.add_task(rpf.snapshot_freq, name="snap_freq")
 run_parameters.add_task(rpf.analysis_freq, name="ana_freq")
 run_parameters.add_task(rpf.max_dt, name="max_dt")
+run_parameters.add_task(tau, name = 'tau')
+
+# Function in order to reset averages
+def reset_averages():
+    for var in average_fields:
+        field = solver.state[var]
+        nx, ny, nz = np.array(field['g']).shape
+        field['g'] = np.zeros((nx,ny,nz))
+    print('Reset time-averaged fields at time t = {}'.format(solver.sim_time))
 
 # Main loop
 try:
     logger.info('Starting loop')
     start_time = time.time()
+
+    next_average = (np.ceil(solver.sim_time / tau) + 1) * tau
+
     while solver.ok:
         dt = CFL.compute_dt()
         dt = solver.step(dt)
@@ -190,8 +228,20 @@ try:
             else:
                 logger.info('No clear end point defined. Simulation may run perpetually.')
 
-        if (solver.iteration-1) % 10 == 0:
-            # Prints progress information include maximum Reynolds number every 10 iterations
+        # When we reach the end of a time-averaging interval, save to analysis file
+        if solver.sim_time >= next_average:
+            next_average += tau
+            solver.evaluate_handlers_now(dt, handlers=[averages])
+            print(''.join([' '] * 200), end='\r')
+            print('Calculated time-averaged fields at time t={}'.format(solver.sim_time))
+
+        # When we reach the start of a time-averaging interval, zero the averages to restart them
+        if solver.sim_time % tau < dt:
+            print(''.join([' '] * 200), end='\r')
+            reset_averages()
+
+        if (solver.iteration-1) % 100 == 0:
+            # Prints progress information include maximum Reynolds number every 100 iterations
             logger.info('Iteration: %i, Time: %e, dt: %e' %(solver.iteration, solver.sim_time, dt))
             logger.info('Max Re = %f' %flow.max('Re'))
 
