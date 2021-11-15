@@ -28,6 +28,11 @@ def merge(dimensionality):
     set_paths = list(pathlib.Path(save_direc + dimensionality + "run_parameters/").glob("run_parameters_s*.h5"))
     post.merge_sets(save_direc + dimensionality + "run_parameters/run_parameters_" + run_name + ".h5", set_paths, cleanup=True)
 
+    #Merging averaging files
+    post.merge_process_files(save_direc + dimensionality + "averages", cleanup=True)
+    set_paths = list(pathlib.Path(save_direc + dimensionality + "averages/").glob("averages_s*.h5"))
+    post.merge_sets(save_direc + dimensionality + "averages/averages_" + run_name + ".h5", set_paths, cleanup=True)
+
 #specifying simulation type
 choice = input("Enter 3 for full 3D simulation 2 for 2.5D: ")
 
