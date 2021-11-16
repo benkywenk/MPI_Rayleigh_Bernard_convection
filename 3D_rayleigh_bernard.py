@@ -35,10 +35,10 @@ phi = rpf.phi
 tau = rpf.tau
 
 # Create bases and domain
-x_basis = de.Fourier('x',Nx,interval=(-Lx/2.,Lx/2.),dealias=3/2)   # Fourier basis in x
-y_basis = de.Fourier('y',Nx,interval=(-Ly/2.,Ly/2.),dealias=3/2)   # Fourier basis in y
-z_basis = de.Chebyshev('z',Nz,interval=(0,Lz),dealias=3/2) # Chebyshev basis in z
-domain = de.Domain([x_basis, y_basis, z_basis], grid_dtype=np.float64)  # Defining domain
+x_basis = de.Fourier('x',Nx,interval=(-Lx/2.,Lx/2.),dealias=2)   # Fourier basis in x
+y_basis = de.Fourier('y',Nx,interval=(-Ly/2.,Ly/2.),dealias=2)   # Fourier basis in y
+z_basis = de.Chebyshev('z',Nz,interval=(0,Lz),dealias=2) # Chebyshev basis in z
+domain = de.Domain([x_basis, y_basis, z_basis], grid_dtype=np.float64,mesh=[4,4])  # Defining domain
 z = domain.grid(1, scales=1)                                   # accessing the z values
 
 # Extra fields for time averaging and mean flow
