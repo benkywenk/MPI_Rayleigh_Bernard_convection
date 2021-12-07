@@ -109,7 +109,7 @@ if make_animation:
     plt.ylabel('y')
     plt.tight_layout()
     animation = ani.FuncAnimation(fig, animate, frames=T[:])
-    animation.save(save_direc + 'convection.htm')  
+    animation.save(save_direc + 'convection.gif')  
 
 if velocity_snapshot:
     fig = plt.figure(figsize=(10,10), dpi=100)
